@@ -216,10 +216,10 @@ The project is based on [RAFT-Stereo](https://github.com/princeton-vl/RAFT-Stere
 Please cite our paper if you find our work useful in your research.
 
 ```
-@article{jiang2025defom,
+@inproceedings{jiang2025defom,
   title={DEFOM-Stereo: Depth Foundation Model Based Stereo Matching},
   author={Jiang, Hualie and Lou, Zhiqiang and Ding, Laiyan and Xu, Rui and Tan, Minglang and Jiang, Wenjie and Huang, Rui},
-  journal={arXiv preprint arXiv:2501.09466},
+  booktitle={IEEE International Conference on Computer Vision and Pattern Recognition (CVPR)},
   year={2025}
 }
 ```
