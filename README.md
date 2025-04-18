@@ -176,7 +176,7 @@ bash script/make_submission.sh
 
 ### Download DaV2 models
 ```
-bash script/download_dav2.sh
+bash scripts/download_dav2.sh
 ```
 
 
