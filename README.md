@@ -155,20 +155,20 @@ The datasets are organized as follows,
 
 ### Download the pre-trained models
 ```
-bash script/download_models.sh
+bash scripts/download_models.sh
 ```
 
 The pretrained models are available on [Google Drive](https://drive.google.com/drive/folders/1cZLcIjHlmUo986gkR6FbofG1cj5BT36x?usp=sharing) and can be downloaded mamanually. 
 
 ### Perfom Evaluation
 ```
-bash script/evaluate.sh
+bash scripts/evaluate.sh
 ```
 
 # Make Benchmark Submission
 
 ```
-bash script/make_submission.sh
+bash scripts/make_submission.sh
 ```
 
 
@@ -183,17 +183,17 @@ bash scripts/download_dav2.sh
 ### Train on SceneFlow
 
 ```
-bash script/train_sceneflow_vits.sh
-bash script/train_sceneflow_vitl.sh
+bash scripts/train_sceneflow_vits.sh
+bash scripts/train_sceneflow_vitl.sh
 ```
 
 ### Finetune for Benchmarks
 
 ```
-bash script/train_kitti.sh
-bash script/train_middlebury.sh
-bash script/train_eth3d.sh
-bash script/train_rvc.sh
+bash scripts/train_kitti.sh
+bash scripts/train_middlebury.sh
+bash scripts/train_eth3d.sh
+bash scripts/train_rvc.sh
 ```
 
 
