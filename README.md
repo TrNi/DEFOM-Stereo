@@ -1,5 +1,13 @@
 # DEFOM-Stereo [CVPR 2025]
 
+This is a forked version (commit `5b27591`) of the official implementation of the DEFOM-Stereo paper accepted at CVPR 2025.
+
+### Changelog:
+* evaluate_stereo2.py: file added to run inference for custom numpy image arrays instead of only supporting popular public datasets.
+
+The following content is unchanged from readme.md file in the original code.
+
+------------------------------------------------------------------
 The Official Pytorch Implementation for
 
 > [**DEFOM-Stereo: Depth Foundation Model Based Stereo Matching**](https://arxiv.org/abs/2501.09466)
