@@ -12,6 +12,7 @@ The following content is unchanged from readme.md file in the original code.
 > [**DEFOM-Stereo: Depth Foundation Model Based Stereo Matching**](https://arxiv.org/abs/2501.09466)
 > 
 > [Original Code:] (https://github.com/Insta360-Research-Team/DEFOM-Stereo/tree/main)
+> 
 > Authors: Hualie Jiang, Zhiqiang Lou, Laiyan Ding, Rui Xu, Minglang Tan, Wenjie Jiang and Rui Huang
 
 # Abstract
