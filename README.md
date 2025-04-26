@@ -3,7 +3,7 @@
 This is a forked version (commit `5b27591`) of the official implementation of the DEFOM-Stereo paper accepted at CVPR 2025.
 
 ### Changelog:
-* evaluate_stereo2.py: file added to run inference for custom numpy image arrays instead of only supporting popular public datasets.
+* demo2.py: file added to run inference for custom numpy image arrays.
 
 The following content is unchanged from readme.md file in the original code.
 
