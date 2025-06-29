@@ -112,7 +112,7 @@ if __name__ == '__main__':
     parser.add_argument('--right_h5_file', default="", type=str)
     parser.add_argument('--stereo_params_npz_file', default = "", type = str)    
     parser.add_argument('--restore_ckpt', help="restore checkpoint", required=True)
-    parser.add_argument('--out_dir', default=f'{code_dir}/../output/', type=str, help='the directory to save results')
+    parser.add_argument('--out_dir', default=f'../output/', type=str, help='the directory to save results')
     parser.add_argument('--save_numpy', action='store_true', help='save output as numpy arrays', default=True)
     #parser.add_argument('-l', '--left_imgs', help="path to all first (left) frames", default="demo/*_left.png")
     #parser.add_argument('-r', '--right_imgs', help="path to all second (right) frames", default="demo/*_right.png")
