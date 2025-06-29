@@ -43,7 +43,7 @@ def demo(args):
     baseline = stereo_params['baseline']
 
     out_dir = Path(args.out_dir)
-    out_dir.mkdir(exist_ok=True)
+    os.makedirs(args.out_dir, exist_ok=True)
 
     # left_images = np.load(args.left_imgs) #sorted(glob.glob(args.left_imgs, recursive=True))
     # right_images = np.load(args.right_imgs) #sorted(glob.glob(args.right_imgs, recursive=True))
