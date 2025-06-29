@@ -4,6 +4,7 @@ sys.path.append('core')
 import argparse
 import glob
 import numpy as np
+import h5py
 import torch
 from tqdm import tqdm
 from pathlib import Path
@@ -35,45 +36,87 @@ def demo(args):
 
     model.to(DEVICE)
     model.eval()
+    stereo_params = np.load(args.stereo_params_npz_file, allow_pickle=True)
+    P1 = stereo_params['P1']
+    P1[:2] *= args.scale
+    f_left = P1[0,0]
+    baseline = stereo_params['baseline']
 
-    output_directory = Path(args.output_directory)
-    output_directory.mkdir(exist_ok=True)
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(exist_ok=True)
 
-    left_images = np.load(args.left_imgs) #sorted(glob.glob(args.left_imgs, recursive=True))
-    right_images = np.load(args.right_imgs) #sorted(glob.glob(args.right_imgs, recursive=True))
-    print(f"Found {left_images.shape} images. Saving files to {output_directory}/")
+    # left_images = np.load(args.left_imgs) #sorted(glob.glob(args.left_imgs, recursive=True))
+    # right_images = np.load(args.right_imgs) #sorted(glob.glob(args.right_imgs, recursive=True))
     
+    
+    if args.left_h5_file and args.right_h5_file:
+      with h5py.File(args.left_h5_file, 'r') as f:
+        left_all = f['left'][()]   # or np.array(f['left'])
+      with h5py.File(args.right_h5_file, 'r') as f:
+        right_all = f['right'][()]
+      print(left_all.shape, right_all.shape)
+    
+    if left_all.ndim==3:
+      left_all = left_all[None]
+      right_all = right_all[None]
+    
+    N,H,W,C = left_all.shape
+    print(f"Found {N} images. Saving files to {out_dir}.")
+    disp_all = []
+    depth_all = []
+
     with torch.no_grad():       
         op_list = []
-        for i in range(5): #tqdm(range(left_images.shape[0])):
+        for i in range(0, N, args.batch_size): #tqdm(range(left_images.shape[0])):
+            img0 = left_all[i:i+args.batch_size]
+            img1 = right_all[i:i+args.batch_size]
+            img0 = torch.as_tensor(img0).cuda().float().permute(0,3,1,2)
+            img1 = torch.as_tensor(img1).cuda().float().permute(0,3,1,2)
 
-            imfile1 = left_images[i].squeeze()
-            imfile2 = right_images[i].squeeze()
-            image1 = load_imarr(imfile1)
-            image2 = load_imarr(imfile2)
 
-            padder = InputPadder(image1.shape, divis_by=32)
-            image1, image2 = padder.pad(image1, image2)
+            # imfile1 = left_all[i].squeeze()
+            # imfile2 = right_all[i].squeeze()
+            # image1 = load_imarr(imfile1)
+            # image2 = load_imarr(imfile2)
+
+            padder = InputPadder(img0.shape, divis_by=32)
+            img0, img1 = padder.pad(img0, img1)
 
             with torch.no_grad():
-                disp_pr = model(image1, image2, iters=args.valid_iters, scale_iters=args.scale_iters, test_mode=True)
+                disp_pr = model(img0, img1, iters=args.valid_iters, scale_iters=args.scale_iters, test_mode=True)
             disp_pr = padder.unpad(disp_pr).cpu().squeeze().numpy()
-            op_list.append(disp_pr)
+            depth = f_left*baseline/(disp_pr+1e-6)
+            # op_list.append(disp_pr)
             # file_stem = "defom_{i}"#imfile1.split('/')[-1].split('_')[0]+'_'+args.restore_ckpt.split('/')[-1][:-4]
             # if args.save_numpy:
             #     np.save(output_directory / f"{file_stem}.npy", disp_pr)
             #plt.imsave(output_directory / f"{file_stem}.png", disp_pr, cmap='jet')
+
+            disp_all.append(disp_pr)
+            depth_all.append(depth)
         
         # if args.save_numpy:
-        np.save(output_directory / f"defom_depth.npy", np.array(op_list))
+        # np.save(output_directory / f"defom_depth.npy", np.array(op_list))
+
+    disp_all = np.concatenate(disp_all, axis=0).reshape(N,H,W).astype(np.float16)
+    depth_all = np.concatenate(depth_all, axis=0).reshape(N,H,W).astype(np.float16)
+
+    with h5py.File(f'{args.out_dir}/leftview_disp.h5', 'w') as f:
+      f.create_dataset('disp', data=disp_all, compression='gzip')
+      f.create_dataset('depth', data=depth_all, compression='gzip')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--batch_size', default=5, type=int)    
+    parser.add_argument('--left_h5_file', default="", type=str)
+    parser.add_argument('--right_h5_file', default="", type=str)
+    parser.add_argument('--stereo_params_npz_file', default = "", type = str)    
     parser.add_argument('--restore_ckpt', help="restore checkpoint", required=True)
-    parser.add_argument('--save_numpy', action='store_true', help='save output as numpy arrays')
-    parser.add_argument('-l', '--left_imgs', help="path to all first (left) frames", default="demo/*_left.png")
-    parser.add_argument('-r', '--right_imgs', help="path to all second (right) frames", default="demo/*_right.png")
-    parser.add_argument('--output_directory', help="directory to save output", default="demo")
+    parser.add_argument('--out_dir', default=f'{code_dir}/../output/', type=str, help='the directory to save results')
+    parser.add_argument('--save_numpy', action='store_true', help='save output as numpy arrays', default=True)
+    #parser.add_argument('-l', '--left_imgs', help="path to all first (left) frames", default="demo/*_left.png")
+    #parser.add_argument('-r', '--right_imgs', help="path to all second (right) frames", default="demo/*_right.png")
+    #parser.add_argument('--output_directory', help="directory to save output", default="demo")
     parser.add_argument('--mixed_precision', action='store_true', help='use mixed precision')
     parser.add_argument('--valid_iters', type=int, default=32, help='number of flow-field updates during forward pass')
     parser.add_argument('--scale_iters', type=int, default=8, help="number of scaling updates to the disparity field in each forward pass.")
