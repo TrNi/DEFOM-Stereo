@@ -8,7 +8,7 @@ from core.utils.utils import coords_grid, upflow, get_danv2_io_size
 
 
 try:
-    autocast = torch.cuda.amp.autocast
+    autocast = torch.amp.autocast
 except:
     # dummy autocast for PyTorch < 1.6
     class autocast:
@@ -80,7 +80,7 @@ class DEFOMStereo(nn.Module):
         danv2_io_sizes = get_danv2_io_size(h, w, self.args.n_downsample)
 
         # run the context network
-        with autocast(enabled=self.args.mixed_precision):
+        with autocast('cuda', enabled=self.args.mixed_precision):
             d_features, dfeat1, dfeat2, disp = self.defomencoder([image1, image2], danv2_io_sizes)
 
             cnet_list = self.cnet(image1, d_features)
