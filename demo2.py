@@ -43,7 +43,7 @@ def demo(args):
     baseline = stereo_params['baseline']
 
     out_dir = Path(args.out_dir)
-    os.makedirs(args.out_dir, exist_ok=True)
+    os.makedirs(out_dir, exist_ok=True)
 
     # left_images = np.load(args.left_imgs) #sorted(glob.glob(args.left_imgs, recursive=True))
     # right_images = np.load(args.right_imgs) #sorted(glob.glob(args.right_imgs, recursive=True))
@@ -66,7 +66,7 @@ def demo(args):
     depth_all = []
 
     with torch.no_grad():       
-        op_list = []
+        #op_list = []
         for i in range(0, N, args.batch_size): #tqdm(range(left_images.shape[0])):
             img0 = left_all[i:i+args.batch_size]
             img1 = right_all[i:i+args.batch_size]
@@ -80,10 +80,8 @@ def demo(args):
             # image2 = load_imarr(imfile2)
 
             padder = InputPadder(img0.shape, divis_by=32)
-            img0, img1 = padder.pad(img0, img1)
-
-            with torch.no_grad():
-                disp_pr = model(img0, img1, iters=args.valid_iters, scale_iters=args.scale_iters, test_mode=True)
+            img0, img1 = padder.pad(img0, img1)            
+            disp_pr = model(img0, img1, iters=args.valid_iters, scale_iters=args.scale_iters, test_mode=True)
             disp_pr = padder.unpad(disp_pr).cpu().squeeze().numpy()
             depth = f_left*baseline/(disp_pr+1e-6)
             # op_list.append(disp_pr)
