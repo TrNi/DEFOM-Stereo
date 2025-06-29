@@ -38,7 +38,7 @@ def demo(args):
     model.eval()
     stereo_params = np.load(args.stereo_params_npz_file, allow_pickle=True)
     P1 = stereo_params['P1']
-    P1[:2] *= args.scale
+    #P1[:2] *= args.scale
     f_left = P1[0,0]
     baseline = stereo_params['baseline']
 
