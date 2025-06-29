@@ -101,7 +101,7 @@ def demo(args):
     disp_all = np.concatenate(disp_all, axis=0).reshape(N,H,W).astype(np.float16)
     depth_all = np.concatenate(depth_all, axis=0).reshape(N,H,W).astype(np.float16)
 
-    with h5py.File(f'{args.out_dir}/leftview_disp.h5', 'w') as f:
+    with h5py.File(f'{args.out_dir}/leftview_disp_depth.h5', 'w') as f:
       f.create_dataset('disp', data=disp_all, compression='gzip')
       f.create_dataset('depth', data=depth_all, compression='gzip')
 
