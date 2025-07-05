@@ -12,6 +12,16 @@ from core.defom_stereo import DEFOMStereo
 from utils.utils import InputPadder
 from PIL import Image
 from matplotlib import pyplot as plt
+import cv2
+
+def resize_image(img_hwc, target_h, target_w, interpolation=cv2.INTER_LINEAR):
+    # img_chw: H x W x C numpy array    
+    resized_hwc = cv2.resize(img_hwc, (target_w, target_h), interpolation=interpolation)
+    
+    return resized_hwc
+
+def resize_batch(batch_nhwc, target_h, target_w, interpolation=cv2.INTER_LINEAR):
+    return np.stack([resize_image(img, target_h, target_w, interpolation) for img in batch_nhwc])
 
 
 DEVICE = 'cuda'
@@ -51,9 +61,9 @@ def demo(args):
     
     if args.left_h5_file and args.right_h5_file:
       with h5py.File(args.left_h5_file, 'r') as f:
-        left_all = f['left'][()]   # or np.array(f['left'])
+        left_all = f['data'][()]   # or np.array(f['left'])
       with h5py.File(args.right_h5_file, 'r') as f:
-        right_all = f['right'][()]
+        right_all = f['data'][()]
       print(left_all.shape, right_all.shape)
     
     if left_all.ndim==3:
@@ -61,15 +71,28 @@ def demo(args):
       right_all = right_all[None]
     
     N,H,W,C = left_all.shape
+    resize_factor = 1.5
     print(f"Found {N} images. Saving files to {out_dir}.")
     disp_all = []
     depth_all = []
 
     with torch.no_grad():       
         #op_list = []
-        for i in range(0, N, args.batch_size): #tqdm(range(left_images.shape[0])):
+        #for i in range(0, N, args.batch_size): #tqdm(range(left_images.shape[0])):
+        for i in tqdm(range(0, N, args.batch_size), desc="Processing batches"):  
             img0 = left_all[i:i+args.batch_size]
             img1 = right_all[i:i+args.batch_size]
+
+            if len(img0.shape)==3:
+                img0 = img0[None,...]
+
+            if len(img1.shape)==3:
+                img1 = img1[None,...]
+
+            img0 = resize_batch(img0, round(H/resize_factor) ,round(W/resize_factor))
+            img1 = resize_batch(img1, round(H/resize_factor), round(W/resize_factor))
+
+
             img0 = torch.as_tensor(img0).cuda().float().permute(0,3,1,2)
             img1 = torch.as_tensor(img1).cuda().float().permute(0,3,1,2)
 
