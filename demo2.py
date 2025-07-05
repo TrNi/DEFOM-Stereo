@@ -126,8 +126,8 @@ def demo(args):
         # if args.save_numpy:
         # np.save(output_directory / f"defom_depth.npy", np.array(op_list))
 
-    disp_all = np.concatenate(disp_all, axis=0).reshape(N,H,W).astype(np.float16)
-    depth_all = np.concatenate(depth_all, axis=0).reshape(N,H,W).astype(np.float16)
+    disp_all = np.concatenate(disp_all, axis=0).reshape(N,round(H/resize_factor),round(W/resize_factor)).astype(np.float16)
+    depth_all = np.concatenate(depth_all, axis=0).reshape(N,round(H/resize_factor),round(W/resize_factor)).astype(np.float16)
 
     with h5py.File(f'{args.out_dir}/leftview_disp_depth.h5', 'w') as f:
       f.create_dataset('disp', data=disp_all, compression='gzip')
