@@ -59,12 +59,19 @@ def demo(args):
     # right_images = np.load(args.right_imgs) #sorted(glob.glob(args.right_imgs, recursive=True))
     
     
-    if args.left_h5_file and args.right_h5_file:
-      with h5py.File(args.left_h5_file, 'r') as f:
-        left_all = f['data'][()]   # or np.array(f['left'])
-      with h5py.File(args.right_h5_file, 'r') as f:
-        right_all = f['data'][()]
-      print(left_all.shape, right_all.shape)
+    if left_h5_file and right_h5_file:
+        try:
+            with h5py.File(left_h5_file, 'r') as f:
+                left_all = f['data'][()]   # or np.array(f['left'])
+            with h5py.File(right_h5_file, 'r') as f:
+                right_all = f['data'][()]
+        except Exception as e:            
+            with h5py.File(left_h5_file, 'r') as f:
+                left_all = f['left'][()]   # or np.array(f['left'])
+            with h5py.File(right_h5_file, 'r') as f:
+                right_all = f['right'][()]
+      
+        print(left_all.shape, right_all.shape)
     
     if left_all.ndim==3:
       left_all = left_all[None]
