@@ -37,15 +37,7 @@ def load_image(imfile):
     return img[None].to(DEVICE)
 
 def demo(args):
-    model = DEFOMStereo(args)
-    checkpoint = torch.load(args.restore_ckpt, map_location='cuda')
-    if 'model' in checkpoint:
-            model.load_state_dict(checkpoint['model'])
-    else:
-        model.load_state_dict(checkpoint)
-
-    model.to(DEVICE)
-    model.eval()
+    
     stereo_params = np.load(args.stereo_params_npz_file, allow_pickle=True)
     P1 = stereo_params['P1']
     #P1[:2] *= args.scale
@@ -77,9 +69,24 @@ def demo(args):
       left_all = left_all[None]
       right_all = right_all[None]
     
-    N,H,W,C = left_all.shape
+    N,C,H,W = left_all.shape
     resize_factor = 1.5
     print(f"Found {N} images. Saving files to {out_dir}.")
+
+
+    model = DEFOMStereo(args)
+    checkpoint = torch.load(args.restore_ckpt, map_location='cuda')
+    if 'model' in checkpoint:
+            model.load_state_dict(checkpoint['model'])
+    else:
+        model.load_state_dict(checkpoint)
+
+    model.to(DEVICE)
+    model.eval()
+
+
+
+
     disp_all = []
     depth_all = []
 
@@ -100,8 +107,8 @@ def demo(args):
             img1 = resize_batch(img1, round(H/resize_factor), round(W/resize_factor))
 
 
-            img0 = torch.as_tensor(img0).cuda().float().permute(0,3,1,2)
-            img1 = torch.as_tensor(img1).cuda().float().permute(0,3,1,2)
+            img0 = torch.as_tensor(img0).cuda().float()
+            img1 = torch.as_tensor(img1).cuda().float()
 
 
             # imfile1 = left_all[i].squeeze()
