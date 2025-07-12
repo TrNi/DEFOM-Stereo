@@ -72,6 +72,10 @@ def demo(args):
       right_all = right_all[None]
     
     N,C,H,W = left_all.shape
+    if args.process_only:
+        N_stop = args.process_only
+    else:
+        N_stop = N
     resize_factor = 1.5
     print(f"Found {N} images. Saving files to {out_dir}.")
 
@@ -85,10 +89,6 @@ def demo(args):
 
     model.to(DEVICE)
     model.eval()
-
-
-
-
     disp_all = []
     depth_all = []
 
@@ -131,7 +131,8 @@ def demo(args):
 
             disp_all.append(disp_pr)
             depth_all.append(depth)
-        
+            if i+batch_size >= N_stop:
+                break
         # if args.save_numpy:
         # np.save(output_directory / f"defom_depth.npy", np.array(op_list))
 
@@ -174,6 +175,7 @@ if __name__ == '__main__':
     parser.add_argument('--n_downsample', type=int, default=2, choices=[2, 3], help="resolution of the disparity field (1/2^K)")
     parser.add_argument('--context_norm', type=str, default="batch", choices=['group', 'batch', 'instance', 'none'], help="normalization of context encoder")
     parser.add_argument('--n_gru_layers', type=int, default=3, help="number of hidden GRU levels")
+    parser.add_argument("--process_only",default=None,type=int)
     
     args = parser.parse_args()
 
