@@ -134,7 +134,7 @@ def test_middlebury(model, save_path, iters=32, scale_iters=8, split='F', mixed_
         padder = InputPadder(image1.shape, divis_by=32)
         image1, image2 = padder.pad(image1, image2)
 
-        with autocast(enabled=mixed_prec):
+        with autocast("cuda",enabled=mixed_prec):
             start = time.time()
             disp_pr = model(image1, image2, iters=iters, scale_iters=scale_iters, test_mode=True)
             end = time.time()
