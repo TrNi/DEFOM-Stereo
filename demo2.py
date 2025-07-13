@@ -131,7 +131,7 @@ def demo(args):
 
             disp_all.append(disp_pr)
             depth_all.append(depth)
-            if i+batch_size >= N_stop:
+            if i+args.batch_size >= N_stop:
                 break
         # if args.save_numpy:
         # np.save(output_directory / f"defom_depth.npy", np.array(op_list))
