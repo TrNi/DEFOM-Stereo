@@ -77,8 +77,14 @@ def demo(args):
     else:
         N_stop = N
     N_max = N_stop
-    resize_factor = 1.5
-    print(f"Found {N} images. Saving files to {out_dir}.")
+    # aspect ratio for Canon EOS 6D is 3/2. 3648
+    # image size of about 1586x2379 works with batch_size of 1, 
+    # with resize_factor of 2.3 at 28s/image, up to ~25 images.
+    small_dim = min(H,W)
+    large_dim = max(H,W)
+    resize_factor = max(round(small_dim/1586,1), round(large_dim/2379,1))
+    # resize_factor = 1.5
+    print(f"Found {N} images,  applying resize_factor {resize_factor} Saving files to {out_dir}.")
 
 
     model = DEFOMStereo(args)
