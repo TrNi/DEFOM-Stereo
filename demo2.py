@@ -126,8 +126,8 @@ def demo(args):
         chunk_size = 5
         while True:
             prev_start_idx = start_idx
-            left_chunk, actual_left_size = read_h5_chunk(args.left_h5_file, 'data', start_idx, chunk_size)
-            right_chunk, actual_right_size = read_h5_chunk(args.right_h5_file, 'data', start_idx, chunk_size)
+            left_chunk, actual_left_size = read_h5_chunk(args.left_h5_file, 'rectified_lefts', start_idx, chunk_size)
+            right_chunk, actual_right_size = read_h5_chunk(args.right_h5_file, 'rectified_rights', start_idx, chunk_size)
             assert actual_left_size == actual_right_size, f"left and right HDF5 chunks have different sizes: {actual_left_size} vs {actual_right_size}"
             if actual_left_size == 0:
                 break
