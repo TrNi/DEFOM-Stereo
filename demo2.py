@@ -144,81 +144,81 @@ def demo(args):
             #         right_all = f['right'][()]      
             print(left_chunk.shape, right_chunk.shape)
     
-        if left_chunk.ndim==3:
-            left_chunk = left_chunk[None]
-            right_chunk = right_chunk[None]
-        
-        N,C,H,W = left_chunk.shape
-        if args.process_only:
-            N_stop = args.process_only
-        else:
-            N_stop = N
-        N_max = N_stop
-        # aspect ratio for Canon EOS 6D is 3/2. 3648
-        # image size of about 1586x2379 works with batch_size of 1, 
-        # with resize_factor of 2.3 at 28s/image, up to ~25 images.
-        small_dim = min(H,W)
-        large_dim = max(H,W)
-        resize_factor = 1.5 # max(round(small_dim/1586,1), round(large_dim/2379,1))
-        # resize_factor = 1.5
-        print(f"Found {N} images in this chunk,  applying resize_factor {resize_factor} Saving files to {out_dir}.")
-        
-        disp_chunk = []
-        depth_chunk = []
+            if left_chunk.ndim==3:
+                left_chunk = left_chunk[None]
+                right_chunk = right_chunk[None]
+            
+            N,C,H,W = left_chunk.shape
+            if args.process_only:
+                N_stop = args.process_only
+            else:
+                N_stop = N
+            N_max = N_stop
+            # aspect ratio for Canon EOS 6D is 3/2. 3648
+            # image size of about 1586x2379 works with batch_size of 1, 
+            # with resize_factor of 2.3 at 28s/image, up to ~25 images.
+            small_dim = min(H,W)
+            large_dim = max(H,W)
+            resize_factor = 1.5 # max(round(small_dim/1586,1), round(large_dim/2379,1))
+            # resize_factor = 1.5
+            print(f"Found {N} images in this chunk,  applying resize_factor {resize_factor} Saving files to {out_dir}.")
+            
+            disp_chunk = []
+            depth_chunk = []
 
-        with torch.no_grad():       
-            #op_list = []
-            #for i in range(0, N, args.batch_size): #tqdm(range(left_images.shape[0])):
-            for i in tqdm(range(0, N, args.batch_size), desc="Processing batches"):  
-                img0 = left_chunk[i:i+args.batch_size]
-                img1 = right_chunk[i:i+args.batch_size]
+            with torch.no_grad():       
+                #op_list = []
+                #for i in range(0, N, args.batch_size): #tqdm(range(left_images.shape[0])):
+                for i in tqdm(range(0, N, args.batch_size), desc="Processing batches"):  
+                    img0 = left_chunk[i:i+args.batch_size]
+                    img1 = right_chunk[i:i+args.batch_size]
 
-                if len(img0.shape)==3:
-                    img0 = img0[None,...]
+                    if len(img0.shape)==3:
+                        img0 = img0[None,...]
 
-                if len(img1.shape)==3:
-                    img1 = img1[None,...]
+                    if len(img1.shape)==3:
+                        img1 = img1[None,...]
 
-                img0 = resize_batch(img0, round(H/resize_factor) ,round(W/resize_factor))
-                img1 = resize_batch(img1, round(H/resize_factor), round(W/resize_factor))
-
-
-                img0 = torch.as_tensor(img0).cuda().float()
-                img1 = torch.as_tensor(img1).cuda().float()
+                    img0 = resize_batch(img0, round(H/resize_factor) ,round(W/resize_factor))
+                    img1 = resize_batch(img1, round(H/resize_factor), round(W/resize_factor))
 
 
-                # imfile1 = left_all[i].squeeze()
-                # imfile2 = right_all[i].squeeze()
-                # image1 = load_imarr(imfile1)
-                # image2 = load_imarr(imfile2)
+                    img0 = torch.as_tensor(img0).cuda().float()
+                    img1 = torch.as_tensor(img1).cuda().float()
 
-                padder = InputPadder(img0.shape, divis_by=32)
-                img0, img1 = padder.pad(img0, img1)            
-                disp_pr = model(img0, img1, iters=args.valid_iters, scale_iters=args.scale_iters, test_mode=True)
-                disp_pr = padder.unpad(disp_pr).cpu().squeeze().numpy()
-                depth = f_left*baseline/(disp_pr+1e-6)
-                # op_list.append(disp_pr)
-                # file_stem = "defom_{i}"#imfile1.split('/')[-1].split('_')[0]+'_'+args.restore_ckpt.split('/')[-1][:-4]
+
+                    # imfile1 = left_all[i].squeeze()
+                    # imfile2 = right_all[i].squeeze()
+                    # image1 = load_imarr(imfile1)
+                    # image2 = load_imarr(imfile2)
+
+                    padder = InputPadder(img0.shape, divis_by=32)
+                    img0, img1 = padder.pad(img0, img1)            
+                    disp_pr = model(img0, img1, iters=args.valid_iters, scale_iters=args.scale_iters, test_mode=True)
+                    disp_pr = padder.unpad(disp_pr).cpu().squeeze().numpy()
+                    depth = f_left*baseline/(disp_pr+1e-6)
+                    # op_list.append(disp_pr)
+                    # file_stem = "defom_{i}"#imfile1.split('/')[-1].split('_')[0]+'_'+args.restore_ckpt.split('/')[-1][:-4]
+                    # if args.save_numpy:
+                    #     np.save(output_directory / f"{file_stem}.npy", disp_pr)
+                    #plt.imsave(output_directory / f"{file_stem}.png", disp_pr, cmap='jet')
+
+                    disp_chunk.append(disp_pr)
+                    depth_chunk.append(depth)
+                    if i+args.batch_size >= N_stop:
+                        N_max = i + img0.shape[0]
+                        break
                 # if args.save_numpy:
-                #     np.save(output_directory / f"{file_stem}.npy", disp_pr)
-                #plt.imsave(output_directory / f"{file_stem}.png", disp_pr, cmap='jet')
+                # np.save(output_directory / f"defom_depth.npy", np.array(op_list))
 
-                disp_chunk.append(disp_pr)
-                depth_chunk.append(depth)
-                if i+args.batch_size >= N_stop:
-                    N_max = i + img0.shape[0]
-                    break
-            # if args.save_numpy:
-            # np.save(output_directory / f"defom_depth.npy", np.array(op_list))
+            disp_chunk = np.concatenate(disp_chunk, axis=0).reshape(N_max,round(H/resize_factor),round(W/resize_factor)).astype(np.float16)
+            depth_chunk = np.concatenate(depth_chunk, axis=0).reshape(N_max,round(H/resize_factor),round(W/resize_factor)).astype(np.float16)
 
-        disp_chunk = np.concatenate(disp_chunk, axis=0).reshape(N_max,round(H/resize_factor),round(W/resize_factor)).astype(np.float16)
-        depth_chunk = np.concatenate(depth_chunk, axis=0).reshape(N_max,round(H/resize_factor),round(W/resize_factor)).astype(np.float16)
-
-        # with h5py.File(f'{args.out_dir}/leftview_disp_depth.h5', 'w') as f:
-        #     f.create_dataset('disp', data=disp_chunk, compression='gzip')
-        #     f.create_dataset('depth', data=depth_chunk, compression='gzip')
-        write_h5_chunk(f'{args.out_dir}/leftview_disp_depth.h5', 'disp', disp_chunk, prev_start_idx, shape=(N_max,round(H/resize_factor),round(W/resize_factor)),dtype=np.float16)
-        write_h5_chunk(f'{args.out_dir}/leftview_disp_depth.h5', 'depth', depth_chunk, prev_start_idx, shape=(N_max,round(H/resize_factor),round(W/resize_factor)),dtype=np.float16)
+            # with h5py.File(f'{args.out_dir}/leftview_disp_depth.h5', 'w') as f:
+            #     f.create_dataset('disp', data=disp_chunk, compression='gzip')
+            #     f.create_dataset('depth', data=depth_chunk, compression='gzip')
+            write_h5_chunk(f'{args.out_dir}/leftview_disp_depth.h5', 'disp', disp_chunk, prev_start_idx, shape=(N_max,round(H/resize_factor),round(W/resize_factor)),dtype=np.float16)
+            write_h5_chunk(f'{args.out_dir}/leftview_disp_depth.h5', 'depth', depth_chunk, prev_start_idx, shape=(N_max,round(H/resize_factor),round(W/resize_factor)),dtype=np.float16)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
