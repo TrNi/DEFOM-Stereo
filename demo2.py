@@ -8,7 +8,7 @@ import torch
 from tqdm import tqdm
 from pathlib import Path
 from core.defom_stereo import DEFOMStereo
-from utils.utils import InputPadder
+from core.utils.utils import InputPadder
 from PIL import Image
 from matplotlib import pyplot as plt
 import cv2
@@ -193,7 +193,8 @@ def demo(args):
                     # image2 = load_imarr(imfile2)
 
                     padder = InputPadder(img0.shape, divis_by=32)
-                    img0, img1 = padder.pad(img0, img1)            
+                    img0, img1 = padder.pad(img0, img1)   
+                    print("Padded input shape:", img0.shape, img1.shape)         
                     disp_pr = model(img0, img1, iters=args.valid_iters, scale_iters=args.scale_iters, test_mode=True)
                     disp_pr = padder.unpad(disp_pr).cpu().squeeze().numpy()
                     depth = f_left*baseline/(disp_pr+1e-6)
