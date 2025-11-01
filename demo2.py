@@ -52,10 +52,10 @@ def read_h5_chunk(h5_file, dataset_name, start_idx, chunk_size=5):
                 
             # Read the chunk
             chunk = dataset[start_idx:start_idx + actual_size]
-            return chunk, actual_size
+            return chunk, actual_size, total_images
             
         except IndexError:
-            return None, 0
+            return None, 0, 0
 
 def write_h5_chunk(h5_file, dataset_name, data, start_idx, shape=None, dtype=np.float32):
     """
@@ -126,8 +126,9 @@ def demo(args):
         chunk_size = 5
         while True:
             prev_start_idx = start_idx
-            left_chunk, actual_left_size = read_h5_chunk(args.left_h5_file, 'rectified_lefts', start_idx, chunk_size)
-            right_chunk, actual_right_size = read_h5_chunk(args.right_h5_file, 'rectified_rights', start_idx, chunk_size)
+            left_chunk, actual_left_size, full_size_left = read_h5_chunk(args.left_h5_file, 'rectified_lefts', start_idx, chunk_size)
+            right_chunk, actual_right_size, full_size_right = read_h5_chunk(args.right_h5_file, 'rectified_rights', start_idx, chunk_size)
+            full_size = min(full_size_left, full_size_right) # full length of the dataset
             assert actual_left_size == actual_right_size, f"left and right HDF5 chunks have different sizes: {actual_left_size} vs {actual_right_size}"
             if actual_left_size == 0:
                 break
@@ -218,8 +219,8 @@ def demo(args):
             # with h5py.File(f'{args.out_dir}/leftview_disp_depth.h5', 'w') as f:
             #     f.create_dataset('disp', data=disp_chunk, compression='gzip')
             #     f.create_dataset('depth', data=depth_chunk, compression='gzip')
-            write_h5_chunk(f'{args.out_dir}/leftview_disp_depth.h5', 'disp', disp_chunk, prev_start_idx, shape=(chunk_size*10,round(H/resize_factor),round(W/resize_factor)),dtype=np.float16)
-            write_h5_chunk(f'{args.out_dir}/leftview_disp_depth.h5', 'depth', depth_chunk, prev_start_idx, shape=(chunk_size*10,round(H/resize_factor),round(W/resize_factor)),dtype=np.float16)
+            write_h5_chunk(f'{args.out_dir}/leftview_disp_depth.h5', 'disp', disp_chunk, prev_start_idx, shape=(full_size,round(H/resize_factor),round(W/resize_factor)),dtype=np.float16)
+            write_h5_chunk(f'{args.out_dir}/leftview_disp_depth.h5', 'depth', depth_chunk, prev_start_idx, shape=(full_size,round(H/resize_factor),round(W/resize_factor)),dtype=np.float16)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
