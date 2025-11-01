@@ -218,8 +218,8 @@ def demo(args):
             # with h5py.File(f'{args.out_dir}/leftview_disp_depth.h5', 'w') as f:
             #     f.create_dataset('disp', data=disp_chunk, compression='gzip')
             #     f.create_dataset('depth', data=depth_chunk, compression='gzip')
-            write_h5_chunk(f'{args.out_dir}/leftview_disp_depth.h5', 'disp', disp_chunk, prev_start_idx, shape=(N_max,round(H/resize_factor),round(W/resize_factor)),dtype=np.float16)
-            write_h5_chunk(f'{args.out_dir}/leftview_disp_depth.h5', 'depth', depth_chunk, prev_start_idx, shape=(N_max,round(H/resize_factor),round(W/resize_factor)),dtype=np.float16)
+            write_h5_chunk(f'{args.out_dir}/leftview_disp_depth.h5', 'disp', disp_chunk, prev_start_idx, shape=(chunk_size*10,round(H/resize_factor),round(W/resize_factor)),dtype=np.float16)
+            write_h5_chunk(f'{args.out_dir}/leftview_disp_depth.h5', 'depth', depth_chunk, prev_start_idx, shape=(chunk_size*10,round(H/resize_factor),round(W/resize_factor)),dtype=np.float16)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
